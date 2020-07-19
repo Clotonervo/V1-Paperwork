@@ -54,8 +54,8 @@ def main(argv):
         print("All paperwork complete for " + asset + "!")
     else:
         print("Missing fields for "+ asset + ": ")
-        for asset in empty_fields:
-            print(asset)
+        for problem in empty_fields:
+            print(problem)
 
     if len(task_problems) == 0:
         print("All tasks complete for " + asset + "!")
