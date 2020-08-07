@@ -19,70 +19,47 @@ task_problems = []
 acceptance_problems = []
 assetID = ""
 releaseNotesRequired = False
+finalOutput = ""
 
-def main(argv):
-    if len(argv) != 2:
-        print("usage: <Story/Defect>")
-        exit()
-
-    # Check parameters
-    asset = sys.argv[1]
+def getPaperwork(asset, type):
 
     taskList = findAllTasks(asset)
     acceptanceCriteriaList = findAllAcceptanceCriteria(asset)
-
-    if asset[0] == 'D':
-        # Check correct defect format
-        if re.match("/D-\d\d\d\d\d/g",asset):
-            print("Invalid Defect Number")
-            exit()
-        assetID = evaluateDefectFields(asset)
-        evaluateAllDefectVXTFields(assetID)
-
-    elif asset[0] == 'S':
-        # Check Story format
-        if re.match("/S-\d\d\d\d\d/g",asset):
-            print("Invalid Story Number")
-            exit()
-        assetID = evaluateStoryFields(asset)
-        evaluateAllStoryVXTFields(assetID)
-
-    else:
-        print("Invalid story/defect number")
-
-
-
     evaluateTasks(taskList)
     evaluateAcceptanceCriteria(acceptanceCriteriaList)
+    global finalOutput
 
     # Final output
     if len(empty_fields) == 0:
-        print("All fields complete for " + asset + "!")
+        finalOutput = finalOutput + "<font color='green'><b>All fields complete for " + asset + "!</b></font> <br/>"
     else:
-        print("Missing fields for "+ asset + ": ")
+        finalOutput = finalOutput + "<font color='red'><b>Missing fields for "+ asset + ": </b></font>"
         for problem in empty_fields:
-            print(problem)
+            finalOutput = finalOutput + "<font color='red'><i>" + problem + "</font></i>"
 
     if len(task_problems) == 0:
-        print("All tasks complete for " + asset + "!")
+        finalOutput = finalOutput + "<font color='green'><b>All tasks complete for " + asset + "!</b></font> <br/>"
     else:
-        print()
-        print("Tasks Incomplete for " + asset + "!")
+        finalOutput = finalOutput + "\n"
+        finalOutput = finalOutput + "<font color='red'><b>Tasks Incomplete for " + asset + ":</b></font>"
         for task in task_problems:
-            print(task)
+            finalOutput = finalOutput + "<font color='red'><i>" + task + "</font></i>"
+        print("tasks ok")
 
     if len(acceptance_problems) == 0:
-        print("All acceptance criteria complete for " + asset + "!")
+        finalOutput = finalOutput + "<font color='green'><b>All acceptance criteria complete for " + asset + "!</b></font> <br/>"
     else:
-        print()
-        print("Acceptance criteria Incomplete for " + asset + "!")
+        finalOutput = finalOutput + "\n"
+        finalOutput = finalOutput + "<font color='red'><b>Acceptance criteria Incomplete for " + asset + ":</b></font>"
         for ac in acceptance_problems:
-            print(ac)
+            finalOutput = finalOutput + "<font color='red'><i>" + ac + "</font></i>"
+        print("ac ok")
 
     if not releaseNotesRequired:
-        print()
-        print("Reminder: Release Notes Required field should be updated and confirmed by PO")
+        finalOutput = finalOutput + "\n"
+        finalOutput = finalOutput + "<i>Reminder: Release Notes Required field should be updated and confirmed by PO</i>"
 
+    return finalOutput
     exit()
 
 
@@ -150,13 +127,14 @@ def evaluateAcceptanceCriteria(acceptanceCriteriaList):
 ## Here we find all the Tasks for the given Asset
 ##
 def findAllTasks(asset):
+    global finalOutput
     taskURL = "https://www9.v1host.com/MasterControlInc/rest-1.v1/Data/Task?where=Parent.Number="
     resp = requests.get(taskURL + "'" + asset + "'", headers=headers)
     if resp.status_code != 200:
         # This means something went wrong.
-        print("API_ERROR: Something went wrong")
-        print(resp.status_code)
-        print(resp.json())
+        finalOutput = finalOutput + "API_ERROR: Something went wrong"
+        finalOutput = finalOutput + resp.status_code
+        finalOutput = finalOutput + resp.json()
         exit()
     data = resp.json()["Assets"]
     return data
@@ -165,13 +143,14 @@ def findAllTasks(asset):
 ## Here we find all the Acceptance Criteria for the given Asset
 ##
 def findAllAcceptanceCriteria(asset):
+    global finalOutput
     taskURL = "https://www9.v1host.com/MasterControlInc/rest-1.v1/Data/Test?where=Parent.Number="
     resp = requests.get(taskURL + "'" + asset + "'", headers=headers)
     if resp.status_code != 200:
         # This means something went wrong.
-        print("API_ERROR: Something went wrong")
-        print(resp.status_code)
-        print(resp.json())
+        finalOutput = finalOutput + "API_ERROR: Something went wrong"
+        finalOutput = finalOutput + resp.status_code
+        finalOutput = finalOutput + resp.json()
         exit()
     data = resp.json()["Assets"]
     return data
@@ -180,14 +159,14 @@ def findAllAcceptanceCriteria(asset):
 ## Here we find all the values for the given Story and search for incomplete fields
 ##
 def evaluateStoryFields(asset):
+    global finalOutput
     storyURL = "https://www9.v1host.com/MasterControlInc/rest-1.v1/Data/Story?where=Number="
-
     resp = requests.get(storyURL + "'" + asset + "'", headers=headers)
     if resp.status_code != 200:
         # This means something went wrong.
-        print("API_ERROR: Something went wrong")
-        print(resp.status_code)
-        print(resp.json())
+        finalOutput = finalOutput + "API_ERROR: Something went wrong"
+        finalOutput = finalOutput + resp.status_code
+        finalOutput = finalOutput + resp.json()
         exit()
     storyID = resp.json()["Assets"][0]["id"].split(":", 1)[1]
     data = resp.json()["Assets"][0]["Attributes"]
@@ -233,13 +212,14 @@ def evaluateStoryFields(asset):
 ## Here we find all the values for the given Defect and search for incomplete fields
 ##
 def evaluateDefectFields(asset):
+    global finalOutput
     defectURL = "https://www9.v1host.com/MasterControlInc/rest-1.v1/Data/Defect?where=Number="
     resp = requests.get(defectURL + "'" + asset + "'", headers=headers)
     if resp.status_code != 200:
         # This means something went wrong.
-        print("API_ERROR: Something went wrong")
-        print(resp.status_code)
-        print(resp.json())
+        finalOutput = finalOutput + "API_ERROR: Something went wrong"
+        finalOutput = finalOutput + resp.status_code
+        finalOutput = finalOutput + resp.json()
         exit()
     defectID = resp.json()["Assets"][0]["id"].split(":", 1)[1]
     data = resp.json()["Assets"][0]["Attributes"]
@@ -288,14 +268,15 @@ def evaluateDefectFields(asset):
 
 def evaluateAllStoryVXTFields(storyID):
         vxtURL = "https://www9.v1host.com/MasterControlInc/rest-1.v1/Data/Story/"
+        global finalOutput
 
     #--------------- Code Impact (Vxt)
         resp = requests.get(vxtURL + storyID + "/Custom_CodeImpactVxT2", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         if(resp.json()["value"] == None):
@@ -305,9 +286,9 @@ def evaluateAllStoryVXTFields(storyID):
         resp = requests.get(vxtURL + storyID + "/Custom_ComplexityVxT2", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         if(resp.json()["value"] == None):
@@ -317,9 +298,9 @@ def evaluateAllStoryVXTFields(storyID):
         resp = requests.get(vxtURL + storyID + "/Custom_SizeofChangeVxT2", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         if(resp.json()["value"] == None):
@@ -329,9 +310,9 @@ def evaluateAllStoryVXTFields(storyID):
         resp = requests.get(vxtURL + storyID + "/Custom_CommitVersion", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         if(resp.json()["value"] == None):
@@ -341,9 +322,9 @@ def evaluateAllStoryVXTFields(storyID):
         resp = requests.get(vxtURL + storyID + "/Custom_ReleaseNoteRequired", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         global releaseNotesRequired
@@ -353,9 +334,9 @@ def evaluateAllStoryVXTFields(storyID):
         resp = requests.get(vxtURL + storyID + "/Custom_BusinessEnabler", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         if(resp.json()["value"] == None):
@@ -365,9 +346,9 @@ def evaluateAllStoryVXTFields(storyID):
         resp = requests.get(vxtURL + storyID + "/Custom_InstallationChange4", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         if(resp.json()["value"] == None):
@@ -379,14 +360,14 @@ def evaluateAllDefectVXTFields(defectID):
         # Also couldn't find Validation tags (vtest, vexe, ...)
         # Also Planning Item
         # Also figure out how to handle release notes
-
+        global finalOutput
     #--------------- Component
         resp = requests.get(vxtURL + defectID + "/Custom_Component", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         if(resp.json()["value"] == None):
@@ -396,9 +377,9 @@ def evaluateAllDefectVXTFields(defectID):
         resp = requests.get(vxtURL + defectID + "/Custom_FoundinVersion", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         if(resp.json()["value"] == None):
@@ -408,9 +389,9 @@ def evaluateAllDefectVXTFields(defectID):
         resp = requests.get(vxtURL + defectID + "/Custom_PriorityGroup2", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         if(resp.json()["value"] == None):
@@ -420,9 +401,9 @@ def evaluateAllDefectVXTFields(defectID):
         resp = requests.get(vxtURL + defectID + "/Custom_CommitVersion", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         if(resp.json()["value"] == None):
@@ -432,9 +413,9 @@ def evaluateAllDefectVXTFields(defectID):
         resp = requests.get(vxtURL + defectID + "/Custom_RootCause", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         if(resp.json()["value"] == None):
@@ -444,9 +425,9 @@ def evaluateAllDefectVXTFields(defectID):
         resp = requests.get(vxtURL + defectID + "/Custom_ReleaseNoteRequired", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         global releaseNotesRequired
@@ -457,9 +438,9 @@ def evaluateAllDefectVXTFields(defectID):
         resp = requests.get(vxtURL + defectID + "/Custom_InstallationChange5", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         if(resp.json()["value"] == None):
@@ -469,9 +450,9 @@ def evaluateAllDefectVXTFields(defectID):
         resp = requests.get(vxtURL + defectID + "/Custom_BusinessEnabler", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         if(resp.json()["value"] == None):
@@ -481,9 +462,9 @@ def evaluateAllDefectVXTFields(defectID):
         resp = requests.get(vxtURL + defectID + "/Custom_CodeImpactVxT2", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         if(resp.json()["value"] == None):
@@ -493,9 +474,9 @@ def evaluateAllDefectVXTFields(defectID):
         resp = requests.get(vxtURL + defectID + "/Custom_ComplexityVxT2", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         if(resp.json()["value"] == None):
@@ -505,14 +486,10 @@ def evaluateAllDefectVXTFields(defectID):
         resp = requests.get(vxtURL + defectID + "/Custom_SizeofChangeVxT2", headers=headers)
         if resp.status_code != 200:
             # This means something went wrong.
-            print("API_ERROR: Something went wrong")
-            print(resp.status_code)
-            print(resp.json())
+            finalOutput = finalOutput + "API_ERROR: Something went wrong"
+            finalOutput = finalOutput + resp.status_code
+            finalOutput = finalOutput + resp.json()
             exit()
 
         if(resp.json()["value"] == None):
             empty_fields.append("Size of Change (VxT)")
-
-
-if __name__ == "__main__":
-    main(sys.argv)
