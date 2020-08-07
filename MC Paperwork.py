@@ -7,8 +7,9 @@ import re
 # This imports the needed PYQT modules for the GUI
 from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QIcon
-from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout
+from PyQt5.QtWidgets import QHBoxLayout, QVBoxLayout, QScrollArea
 from PyQt5.QtWidgets import QLabel, QPushButton, QLineEdit
+from PyQt5.QtCore import Qt
 
 
 # Import in the code that implements the actual code
@@ -29,13 +30,18 @@ class PaperworkGUI( QWidget ):
         # Now setup for project 1
         vbox = QVBoxLayout()
         self.setLayout( vbox )
-
+        self.scroll = QScrollArea()
+        # self.scroll.setVerticalScrollBarPolicy(self, Qt_ScrollBarPolicy=ScrollBarAlwaysOn)
         self.input_n = QLineEdit('')
         self.input_n.setMinimumSize(300, 100)
         self.test    = QPushButton('Check Paperwork')
-        self.outputF  = QLabel('<i>Enter in a story/defect number to check paperwork</i>')
-        self.outputF.setWordWrap(True)
-        self.outputF.setFixedWidth(500)
+        self.label = QLabel("<i>Enter in a story/defect number to check paperwork</i>")
+        self.label.setWordWrap(True)
+        self.label.setFixedWidth(500)
+        self.label.setAlignment(Qt.AlignTop)
+        # self.outputF  = QLabel('<i>Enter in a story/defect number to check paperwork</i>')
+        # self.outputF.setWordWrap(True)
+        # self.outputF.setFixedWidth(500)
 
         # N
         h = QHBoxLayout()
@@ -50,16 +56,30 @@ class PaperworkGUI( QWidget ):
         vbox.addLayout(h)
 
         # Output
-        h = QHBoxLayout()
-        h.addWidget( self.outputF )
-        vbox.addLayout(h)
+        # h = QHBoxLayout()
+        # h.addWidget( self.outputF )
+        # vbox.addLayout(h)
+
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        scroll.setGeometry(100, 100, 100, 100)
+        content = QWidget()
+        scroll.setWidget(self.label)
+        lay = QVBoxLayout()
+        lay.addWidget(scroll)
+        # label = QLabel("TEST")
+        self.label.setWordWrap(True)
+        vbox.addLayout(lay)
+
+
+
 
         # When the Test button is clicked, call testClicked()
         self.test.clicked.connect(self.testClicked)
         # Do the same if enter is pressed in either input field
         self.input_n.returnPressed.connect(self.testClicked)
         # self.input_k.returnPressed.connect(self.testClicked)
-
         self.show()
 
 #
@@ -68,29 +88,44 @@ class PaperworkGUI( QWidget ):
 #
     def testClicked( self ):
         try:
-            asset = self.input_n.text()
-            assetType = asset[0]
+            assets = self.input_n.text().split(',')
+            multiple = False
+            if len(assets) > 1:
+                multiple = True
+            finalOutput = ''
+            for asset in assets:
+                asset = asset.strip()
+                if len(asset) == 0:
+                    return
+                assetType = asset[0]
 
-            if assetType == 'D' or assetType == 'd':
-                # Check correct defect format
-                if not re.match("D-\d{5}$",asset) is None:
-                    self.outputF.setText('<b>Invalid Defect Number:</b> '+ '<i>' + asset + '</i>')
+
+                if assetType == 'D' or assetType == 'd':
+                    # Check correct defect format
+                    if re.match("D-\d{5}$",asset) is None:
+                        finalOutput += '<b>Invalid Defect Number:</b><i>' + asset + '</i>'
+                    else:
+                        finalOutput += Paperwork.getPaperwork(asset, 'Defect')
+
+                elif assetType == 'S' or assetType == 's':
+                    # Check Story formats
+                    if re.match("S-\d{5}$",asset) is None:
+                        finalOutput += '<b>Invalid Story Number:</b>' + '<i>' + asset + '</i>'
+                    else:
+                        finalOutput += Paperwork.getPaperwork(asset, 'Story')
+
                 else:
-                    self.outputF.setText('<b>'+ Paperwork.getPaperwork(asset, 'Defect') + '</b>')
+                    self.label.setText('<b>Error occurred, please check your story/defect number:</b> <i>' + asset + '</i>')
+                    return
 
-            elif assetType == 'S' or assetType == 's':
-                # Check Story formats
-                if re.match("S-\d{5}$",asset) is None:
-                    self.outputF.setText('<b>Invalid Story Number:</b>' + '<i>' + asset + '</i>')
-                else:
-                    self.outputF.setText(Paperwork.getPaperwork(asset, 'Story'))
+                if multiple:
+                    finalOutput += "-------------------------------- <br/>"
 
-            else:
-                self.outputF.setText('<b>Error occurred, please check your story/defect number:</b> '+ '<i>' + asset + '</i>')
-                return
+
+            self.label.setText(finalOutput)
             # Make sure inputs are valid integers
             # k = int( self.input_k.text() )
-            self.outputF.resize(500,500)
+            # self.outputF.resize(500,500)
             # This is the call to the pass-through function that gets your results, from
             # both the Fermat and Miller-Rabin tests you will implement
             # ret_fermat,ret_mr = fermat.prime_test(n,k)
@@ -109,11 +144,11 @@ class PaperworkGUI( QWidget ):
             #     self.outputMR.setText( '<i>MR Result:</i> {:d} <b>is prime</b> with probability {:5.15f}'.format(n,prob) )
             # else: # Should be 'composite'
             #     self.outputMR.setText('<i>MR Result:</i> {:d} is <b>not prime</b>'.format(n))
-            self.outputF.adjustSize()
+            # self.outputF.adjustSize()
 
         # If inputs not valid, display an error
         except Exception as e:
-            self.outputF.setText('<i>ERROR:</i> ' + str(e) )
+            self.label.setText('<i>ERROR:</i> ' + str(e) )
 
 
 

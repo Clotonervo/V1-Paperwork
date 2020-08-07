@@ -17,50 +17,74 @@ headers = {'Authorization': 'Bearer 1.u3re+B2QHhxi052xeqPhxs39moY=', 'Accept': '
 empty_fields = []
 task_problems = []
 acceptance_problems = []
-assetID = ""
+# assetID = ""
 releaseNotesRequired = False
 finalOutput = ""
 
 def getPaperwork(asset, type):
 
+    global empty_fields
+    global task_problems
+    global acceptance_problems
+    task_problems = []
+    acceptance_problems = []
+    empty_fields = []
     taskList = findAllTasks(asset)
     acceptanceCriteriaList = findAllAcceptanceCriteria(asset)
     evaluateTasks(taskList)
     evaluateAcceptanceCriteria(acceptanceCriteriaList)
     global finalOutput
+    finalOutput = ''
+
+    if type == "Defect":
+        assetID = evaluateDefectFields(asset)
+        evaluateAllDefectVXTFields(assetID)
+    else:
+        assetID = evaluateStoryFields(asset)
+        evaluateAllStoryVXTFields(assetID)
 
     # Final output
     if len(empty_fields) == 0:
         finalOutput = finalOutput + "<font color='green'><b>All fields complete for " + asset + "!</b></font> <br/>"
     else:
-        finalOutput = finalOutput + "<font color='red'><b>Missing fields for "+ asset + ": </b></font>"
+        finalOutput = finalOutput + "<font color='red'><b>Missing fields for " + asset + ": </b></font> <br/><i>"
         for problem in empty_fields:
-            finalOutput = finalOutput + "<font color='red'><i>" + problem + "</font></i>"
+            finalOutput = finalOutput + problem + ","
+        finalOutput = finalOutput[:-1] + "</i></font><br/>"
 
     if len(task_problems) == 0:
         finalOutput = finalOutput + "<font color='green'><b>All tasks complete for " + asset + "!</b></font> <br/>"
     else:
-        finalOutput = finalOutput + "\n"
-        finalOutput = finalOutput + "<font color='red'><b>Tasks Incomplete for " + asset + ":</b></font>"
+        # finalOutput = finalOutput + "<br/>"
+        finalOutput = finalOutput + "<font color='red'><b>Tasks Incomplete for " + asset + ":</b></font><br/>"
         for task in task_problems:
-            finalOutput = finalOutput + "<font color='red'><i>" + task + "</font></i>"
-        print("tasks ok")
+            finalOutput = finalOutput + "<font color='red'>" + task["Name"] + "</font>"
+            for value in task["Values"]:
+                finalOutput = finalOutput + "<i> " + value + ","
+            finalOutput = finalOutput[:-1] + "</i><br/>"
 
     if len(acceptance_problems) == 0:
-        finalOutput = finalOutput + "<font color='green'><b>All acceptance criteria complete for " + asset + "!</b></font> <br/>"
+        finalOutput = finalOutput + "<font color='green'><b>All acceptance criteria complete for " + asset + "!</b></font><br/>"
     else:
-        finalOutput = finalOutput + "\n"
-        finalOutput = finalOutput + "<font color='red'><b>Acceptance criteria Incomplete for " + asset + ":</b></font>"
+        # finalOutput = finalOutput + "<br/>"
+        finalOutput = finalOutput + "<font color='red'><b>Acceptance criteria Incomplete for " + asset + ":</b></font><br/>"
         for ac in acceptance_problems:
-            finalOutput = finalOutput + "<font color='red'><i>" + ac + "</font></i>"
-        print("ac ok")
+            finalOutput = finalOutput + "<font color='red'>" + ac["Name"] + "</font>"
+            for value in ac["Values"]:
+                finalOutput = finalOutput + "<i> " + value + ","
+            finalOutput = finalOutput[:-1] + "</i></font><br/>"
 
     if not releaseNotesRequired:
         finalOutput = finalOutput + "\n"
-        finalOutput = finalOutput + "<i>Reminder: Release Notes Required field should be updated and confirmed by PO</i>"
+        finalOutput = finalOutput + "<i>Reminder: Release Notes Required field should be updated and confirmed by PO</i><br/>"
 
-    return finalOutput
-    exit()
+    returnString = finalOutput
+    finalOutput = ""
+    return returnString
+
+
+
+
 
 
 '''
