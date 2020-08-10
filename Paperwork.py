@@ -208,7 +208,7 @@ def evaluateStoryFields(asset):
     solution =  data["Parent.Name"]["value"]
     owners = data["Owners.Name"]["value"]
     team = data["Team"]["value"]
-    theme_investment =  data["Source.Name"]["value"]         #TODO: Check this
+    theme_investment =  data["Source.Name"]["value"]
 
     # Check for empty fields in asset
     if planning_level == None:
