@@ -56,23 +56,25 @@ def getPaperwork(asset, type):
         finalOutput = finalOutput + "<font color='green'><b>All tasks complete for " + asset + "!</b></font> <br/>"
     else:
         # finalOutput = finalOutput + "<br/>"
-        finalOutput = finalOutput + "<font color='red'><b>Tasks Incomplete for " + asset + ":</b></font><br/>"
+        finalOutput = finalOutput + "<font color='red'><b>Tasks Incomplete for " + asset + ":</font><ul>"
         for task in task_problems:
-            finalOutput = finalOutput + "<font color='red'>" + task["Name"] + "</font>"
+            finalOutput = finalOutput + "<li><font color='red'>" + task["Name"] + "</font>"
             for value in task["Values"]:
                 finalOutput = finalOutput + "<i> " + value + ","
-            finalOutput = finalOutput[:-1] + "</i><br/>"
+            finalOutput = finalOutput[:-1] + "</i></li>"
+        finalOutput += "</ul>"
 
     if len(acceptance_problems) == 0:
         finalOutput = finalOutput + "<font color='green'><b>All acceptance criteria complete for " + asset + "!</b></font><br/>"
     else:
         # finalOutput = finalOutput + "<br/>"
-        finalOutput = finalOutput + "<font color='red'><b>Acceptance criteria Incomplete for " + asset + ":</b></font><br/>"
+        finalOutput = finalOutput + "<font color='red'><b>Acceptance criteria Incomplete for " + asset + ":</font><ul>"
         for ac in acceptance_problems:
-            finalOutput = finalOutput + "<font color='red'>" + ac["Name"] + "</font>"
+            finalOutput = finalOutput + "<li><font color='red'>" + ac["Name"] + "</font>"
             for value in ac["Values"]:
                 finalOutput = finalOutput + "<i> " + value + ","
-            finalOutput = finalOutput[:-1] + "</i></font><br/>"
+            finalOutput = finalOutput[:-1] + "</i></font></li>"
+        finalOutput += "</ul>"
 
     if not releaseNotesRequired:
         finalOutput = finalOutput + "\n"
@@ -203,7 +205,7 @@ def evaluateStoryFields(asset):
     # Map asset values
     planning_level = data["Scope.Name"]["value"]
     sprint = data["Timebox.Name"]["value"]
-    status =  data["Status.Name"]["value"]
+    # status =  data["Status.Name"]["value"]
     estimate_sp =  data["Estimate"]["value"]
     solution =  data["Parent.Name"]["value"]
     owners = data["Owners.Name"]["value"]
@@ -225,8 +227,8 @@ def evaluateStoryFields(asset):
         empty_fields.append("Team")
     if theme_investment == None:
         empty_fields.append("Theme Investment")
-    if status != "Done":
-        empty_fields.append("Status")
+    # if status != "Done":
+    #     empty_fields.append("Status")
 
 
     return storyID
@@ -257,7 +259,7 @@ def evaluateDefectFields(asset):
     planning_level = data["Scope.Name"]["value"]
     sprint = data["Timebox.Name"]["value"]
     tags = data["TaggedWith"]["value"]
-    status =  data["Status.Name"]["value"]
+    # status =  data["Status.Name"]["value"]
     estimate_sp =  data["Estimate"]["value"]
     solution =  data["Parent.Name"]["value"]
     owners = data["Owners.Name"]["value"]

@@ -34,7 +34,7 @@ class PaperworkGUI( QWidget ):
         # self.scroll.setVerticalScrollBarPolicy(self, Qt_ScrollBarPolicy=ScrollBarAlwaysOn)
         self.input_n = QLineEdit('')
         self.input_n.setMinimumSize(300, 100)
-        self.test    = QPushButton('Check Paperwork')
+        self.button    = QPushButton('Check Paperwork')
         self.label = QLabel("<i>Enter in story/defect numbers delimited by commas to check paperwork</i>")
         self.label.setWordWrap(True)
         self.label.setFixedWidth(500)
@@ -52,7 +52,7 @@ class PaperworkGUI( QWidget ):
         # Test
         h = QHBoxLayout()
         h.addStretch(1)
-        h.addWidget( self.test )
+        h.addWidget( self.button )
         vbox.addLayout(h)
 
         # Output
@@ -78,7 +78,7 @@ class PaperworkGUI( QWidget ):
 
 
         # When the Test button is clicked, call testClicked()
-        self.test.clicked.connect(self.testClicked)
+        self.button.clicked.connect(self.testClicked)
         # Do the same if enter is pressed in either input field
         self.input_n.returnPressed.connect(self.testClicked)
         # self.input_k.returnPressed.connect(self.testClicked)
@@ -121,7 +121,7 @@ class PaperworkGUI( QWidget ):
                     return
 
                 if multiple:
-                    finalOutput += "-------------------------------- <br/>"
+                    finalOutput += "<hr><br/>"
 
 
             self.label.setText(finalOutput)
