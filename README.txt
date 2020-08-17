@@ -1,2 +1,2 @@
 python "MC Paperwork.py"
-![][MC-paperwork-demo.gif]
+![](MC-paperwork-demo.gif)
