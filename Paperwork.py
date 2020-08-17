@@ -3,6 +3,8 @@
 import sys
 import requests
 import re
+from os import environ as env
+from dotenv import load_dotenv
 
 '''
 This current paperwork parser takes a single story/defect number and checks version 1 for
@@ -10,14 +12,14 @@ whether or not the paperwork fields are empty. This could be altered to check ev
 in a sprint to see if any need to have more completed paperwork, or some other use, this
 is intended to be just base code
 '''
-
+# Environment Variables
+load_dotenv()
 # Headers contain my authToken for V1 api
-headers = {'Authorization': 'Bearer 1.u3re+B2QHhxi052xeqPhxs39moY=', 'Accept': 'application/json'}
+headers = {'Authorization': 'Bearer ' + env.get("API_KEY"), 'Accept': 'application/json'}
 # Simple list that helps us know if there are any empty fields
 empty_fields = []
 task_problems = []
 acceptance_problems = []
-# assetID = ""
 releaseNotesRequired = False
 finalOutput = ""
 
@@ -49,8 +51,8 @@ def getPaperwork(asset, type):
     else:
         finalOutput = finalOutput + "<font color='red'><b>Missing fields for " + asset + ": </b></font> <br/><i>"
         for problem in empty_fields:
-            finalOutput = finalOutput + problem + ","
-        finalOutput = finalOutput[:-1] + "</i></font><br/>"
+            finalOutput = finalOutput + problem + ", "
+        finalOutput = finalOutput[:-1][:-1] + "</i></font><br/>"
 
     if len(task_problems) == 0:
         finalOutput = finalOutput + "<font color='green'><b>All tasks complete for " + asset + "!</b></font> <br/>"
@@ -58,11 +60,11 @@ def getPaperwork(asset, type):
         # finalOutput = finalOutput + "<br/>"
         finalOutput = finalOutput + "<font color='red'><b>Tasks Incomplete for " + asset + ":</font><ul>"
         for task in task_problems:
-            finalOutput = finalOutput + "<li><font color='red'>" + task["Name"] + "</font>"
+            finalOutput = finalOutput + "<li>" + task["Name"] + "<font color='red'>"
             for value in task["Values"]:
                 finalOutput = finalOutput + "<i> " + value + ","
             finalOutput = finalOutput[:-1] + "</i></li>"
-        finalOutput += "</ul>"
+        finalOutput += "</ul></font>"
 
     if len(acceptance_problems) == 0:
         finalOutput = finalOutput + "<font color='green'><b>All acceptance criteria complete for " + asset + "!</b></font><br/>"
@@ -70,7 +72,7 @@ def getPaperwork(asset, type):
         # finalOutput = finalOutput + "<br/>"
         finalOutput = finalOutput + "<font color='red'><b>Acceptance criteria Incomplete for " + asset + ":</font><ul>"
         for ac in acceptance_problems:
-            finalOutput = finalOutput + "<li><font color='red'>" + ac["Name"] + "</font>"
+            finalOutput = finalOutput + "<li>" + ac["Name"] + "<font color='red''>"
             for value in ac["Values"]:
                 finalOutput = finalOutput + "<i> " + value + ","
             finalOutput = finalOutput[:-1] + "</i></font></li>"
@@ -86,13 +88,12 @@ def getPaperwork(asset, type):
 
 
 
-
-
-
 '''
 ****************************** Helper functions! ***************************
 '''
-
+##
+## Here we evaluate all the tasks for the given Asset
+##
 def evaluateTasks(taskList):
     for task in taskList:
         taskName = task["Attributes"]["Name"]["value"]
@@ -119,6 +120,9 @@ def evaluateTasks(taskList):
         if len(error_values) > 0:
             task_problems.append({"Name": taskName + ": " + number, "Values" :error_values})
 
+##
+## Here we evaluate all the acceptance criteria for the given Asset
+##
 def evaluateAcceptanceCriteria(acceptanceCriteriaList):
     for acceptance in acceptanceCriteriaList:
         acceptanceName = acceptance["Attributes"]["Name"]["value"]
@@ -197,11 +201,6 @@ def evaluateStoryFields(asset):
     storyID = resp.json()["Assets"][0]["id"].split(":", 1)[1]
     data = resp.json()["Assets"][0]["Attributes"]
 
-    '''
-    There are more possible fields, just his is my attempt to map the
-    JSON data name to what the field name is, I also didn't know what is
-    actually needed for paperwork
-    '''
     # Map asset values
     planning_level = data["Scope.Name"]["value"]
     sprint = data["Timebox.Name"]["value"]
@@ -250,11 +249,6 @@ def evaluateDefectFields(asset):
     defectID = resp.json()["Assets"][0]["id"].split(":", 1)[1]
     data = resp.json()["Assets"][0]["Attributes"]
 
-    '''
-    There are more possible fields, just his is my attempt to map the
-    JSON data name to what the field name is, I also didn't know what is
-    actually needed for paperwork
-    '''
     # Map asset values
     planning_level = data["Scope.Name"]["value"]
     sprint = data["Timebox.Name"]["value"]
@@ -292,230 +286,124 @@ def evaluateDefectFields(asset):
 
     return defectID
 
+##
+## Here we evaluate all the Vxt fields for the given Story
+##
 def evaluateAllStoryVXTFields(storyID):
-        vxtURL = "https://www9.v1host.com/MasterControlInc/rest-1.v1/Data/Story/"
         global finalOutput
 
     #--------------- Code Impact (Vxt)
-        resp = requests.get(vxtURL + storyID + "/Custom_CodeImpactVxT2", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
-        if(resp.json()["value"] == None):
+        resp = getVtxValue(storyID, "/Custom_CodeImpactVxT2", True)
+        if(resp["value"] == None):
             empty_fields.append("Code Impact (VxT)")
 
     #--------------- Complexity (Vxt)
-        resp = requests.get(vxtURL + storyID + "/Custom_ComplexityVxT2", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
-        if(resp.json()["value"] == None):
+        resp = getVtxValue(storyID, "/Custom_ComplexityVxT2", True)
+        if(resp["value"] == None):
             empty_fields.append("Complexity (VxT)")
 
     #--------------- Size of Change (Vxt)
-        resp = requests.get(vxtURL + storyID + "/Custom_SizeofChangeVxT2", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
-        if(resp.json()["value"] == None):
+        resp = getVtxValue(storyID, "/Custom_SizeofChangeVxT2", True)
+        if(resp["value"] == None):
             empty_fields.append("Size of Change (VxT)")
 
     #--------------- Commit Version
-        resp = requests.get(vxtURL + storyID + "/Custom_CommitVersion", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
-        if(resp.json()["value"] == None):
+        resp = getVtxValue(storyID, "/Custom_CommitVersion", True)
+        if(resp["value"] == None):
             empty_fields.append("Commit Version")
 
-    #--------------- Release Notes Required    TODO: Check that this does what it needs, could be both true or false
-        resp = requests.get(vxtURL + storyID + "/Custom_ReleaseNoteRequired", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
+    #--------------- Release Notes Required
+        resp = getVtxValue(storyID, "/Custom_ReleaseNoteRequired", True)
         global releaseNotesRequired
         releaseNotesRequired = resp.json()["value"]
 
     #--------------- Business Enabler
-        resp = requests.get(vxtURL + storyID + "/Custom_BusinessEnabler", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
-        if(resp.json()["value"] == None):
+        resp = getVtxValue(storyID, "/Custom_BusinessEnabler", True)
+        if(resp["value"] == None):
             empty_fields.append("Business Enabler")
 
     #--------------- Installation Change
-        resp = requests.get(vxtURL + storyID + "/Custom_InstallationChange4", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
-        if(resp.json()["value"] == None):
+        resp = getVtxValue(storyID, "/Custom_InstallationChange4", True)
+        if(resp["value"] == None):
             empty_fields.append("Installation Change")
 
+
+##
+## Here we evaluate all the vxt fields for the given Defect
+##
 def evaluateAllDefectVXTFields(defectID):
-        vxtURL = "https://www9.v1host.com/MasterControlInc/rest-1.v1/Data/Defect/"
         #TODO: Can't find Summary, and didn't implement description
         # Also couldn't find Validation tags (vtest, vexe, ...)
         # Also Planning Item
         # Also figure out how to handle release notes
         global finalOutput
     #--------------- Component
-        resp = requests.get(vxtURL + defectID + "/Custom_Component", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
-        if(resp.json()["value"] == None):
+        resp = getVtxValue(defectID, "/Custom_Component", False)
+        if(resp["value"] == None):
             empty_fields.append("Component")
 
     #--------------- Found in Version
-        resp = requests.get(vxtURL + defectID + "/Custom_FoundinVersion", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
-        if(resp.json()["value"] == None):
+        resp = getVtxValue(defectID, "/Custom_FoundinVersion", False)
+        if(resp["value"] == None):
             empty_fields.append("Found in Version")
 
     #--------------- Priority Group
-        resp = requests.get(vxtURL + defectID + "/Custom_PriorityGroup2", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
+        resp = getVtxValue(defectID, "/Custom_PriorityGroup2", False)
         if(resp.json()["value"] == None):
             empty_fields.append("Priority Group")
 
     #--------------- Commit Version
-        resp = requests.get(vxtURL + defectID + "/Custom_CommitVersion", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
-        if(resp.json()["value"] == None):
+        resp = getVtxValue(defectID, "/Custom_CommitVersion", False)
+        if(resp["value"] == None):
             empty_fields.append("Commit Version")
 
     #--------------- Root Cause
-        resp = requests.get(vxtURL + defectID + "/Custom_RootCause", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
-        if(resp.json()["value"] == None):
+        resp = getVtxValue(defectID, "/Custom_RootCause", False)
+        if(resp["value"] == None):
             empty_fields.append("Root Cause")
 
     #--------------- Release Notes Required
-        resp = requests.get(vxtURL + defectID + "/Custom_ReleaseNoteRequired", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
+        resp = getVtxValue(defectID, "/Custom_ReleaseNoteRequired", False)
         global releaseNotesRequired
-        releaseNotesRequired = resp.json()["value"]
-
+        releaseNotesRequired = resp["value"]
 
     #--------------- Installation Change
-        resp = requests.get(vxtURL + defectID + "/Custom_InstallationChange5", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
-        if(resp.json()["value"] == None):
+        resp = getVtxValue(defectID, "/Custom_InstallationChange5", False)
+        if(resp["value"] == None):
             empty_fields.append("Installation Change")
 
     #--------------- Business Enabler
-        resp = requests.get(vxtURL + defectID + "/Custom_BusinessEnabler", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
-        if(resp.json()["value"] == None):
+        resp = getVtxValue(defectID, "/Custom_BusinessEnabler", False)
+        if(resp["value"] == None):
             empty_fields.append("Business Enabler")
 
     #--------------- Code Impact (Vxt)
-        resp = requests.get(vxtURL + defectID + "/Custom_CodeImpactVxT2", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
-        if(resp.json()["value"] == None):
+        resp = getVtxValue(defectID, "/Custom_CodeImpactVxT2", False)
+        if(resp["value"] == None):
             empty_fields.append("Code Impact (VxT)")
 
     #--------------- Complexity (Vxt)
-        resp = requests.get(vxtURL + defectID + "/Custom_ComplexityVxT2", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
-        if(resp.json()["value"] == None):
+        resp = getVtxValue(defectID, "/Custom_ComplexityVxT2", False)
+        if(resp["value"] == None):
             empty_fields.append("Complexity (VxT)")
 
     #--------------- Size of Change (Vxt)
-        resp = requests.get(vxtURL + defectID + "/Custom_SizeofChangeVxT2", headers=headers)
-        if resp.status_code != 200:
-            # This means something went wrong.
-            finalOutput = finalOutput + "API_ERROR: Something went wrong"
-            finalOutput = finalOutput + resp.status_code
-            finalOutput = finalOutput + resp.json()
-            exit()
-
-        if(resp.json()["value"] == None):
+        resp = getVtxValue(defectID, "/Custom_SizeofChangeVxT2", False)
+        if(resp["value"] == None):
             empty_fields.append("Size of Change (VxT)")
+
+
+##
+## Here we get a vtx value of a specific asset
+##
+def getVtxValue(assetID, urlPath, isStory):
+    global finalOutput
+    assetType = "Story/" if isStory else "Defect/"
+    resp = requests.get("https://www9.v1host.com/MasterControlInc/rest-1.v1/Data/" + assetType + assetID + urlPath, headers=headers)
+    if resp.status_code != 200:
+        # This means something went wrong.
+        finalOutput = finalOutput + "API_ERROR: Something went wrong"
+        finalOutput = finalOutput + resp.status_code
+        finalOutput = finalOutput + resp.json()
+        exit()
+    return resp.json()

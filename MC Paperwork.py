@@ -25,13 +25,12 @@ class PaperworkGUI( QWidget ):
 
     def initUI( self ):
         self.setWindowTitle('MC VersionOne Paperwork Checker')
-        # self.setWindowIcon( QIcon('icon312.png') )
+        self.setWindowIcon( QIcon('icon.jpg') )
 
         # Now setup for project 1
         vbox = QVBoxLayout()
         self.setLayout( vbox )
         self.scroll = QScrollArea()
-        # self.scroll.setVerticalScrollBarPolicy(self, Qt_ScrollBarPolicy=ScrollBarAlwaysOn)
         self.input_n = QLineEdit('')
         self.input_n.setMinimumSize(300, 100)
         self.button    = QPushButton('Check Paperwork')
@@ -39,9 +38,7 @@ class PaperworkGUI( QWidget ):
         self.label.setWordWrap(True)
         self.label.setFixedWidth(500)
         self.label.setAlignment(Qt.AlignTop)
-        # self.outputF  = QLabel('<i>Enter in a story/defect number to check paperwork</i>')
-        # self.outputF.setWordWrap(True)
-        # self.outputF.setFixedWidth(500)
+
 
         # N
         h = QHBoxLayout()
@@ -55,15 +52,9 @@ class PaperworkGUI( QWidget ):
         h.addWidget( self.button )
         vbox.addLayout(h)
 
-        # Output
-        # h = QHBoxLayout()
-        # h.addWidget( self.outputF )
-        # vbox.addLayout(h)
-
         scroll = QScrollArea()
         scroll.setWidgetResizable(True)
         scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        # scroll.setGeometry(200, 200, 200, 200)
         scroll.setMaximumHeight(500)
         scroll.setMinimumHeight(200)
         content = QWidget()
@@ -77,11 +68,10 @@ class PaperworkGUI( QWidget ):
 
 
 
+
         # When the Test button is clicked, call testClicked()
         self.button.clicked.connect(self.testClicked)
-        # Do the same if enter is pressed in either input field
         self.input_n.returnPressed.connect(self.testClicked)
-        # self.input_k.returnPressed.connect(self.testClicked)
         self.show()
 
 #
@@ -125,28 +115,6 @@ class PaperworkGUI( QWidget ):
 
 
             self.label.setText(finalOutput)
-            # Make sure inputs are valid integers
-            # k = int( self.input_k.text() )
-            # self.outputF.resize(500,500)
-            # This is the call to the pass-through function that gets your results, from
-            # both the Fermat and Miller-Rabin tests you will implement
-            # ret_fermat,ret_mr = fermat.prime_test(n,k)
-            # self.outputF.setText('<b>'+ Paperwork.getPaperwork() + '</b>')
-
-            # Output results from Fermat and compute the appropriate error bound, if necessary
-            # if ret_fermat == 'prime':
-            #     prob = fermat.fprobability(k)
-            #     self.outputF.setText( '<i>Fermat Result:</i> {:d} <b>is prime</b> with probability {:5.15f}'.format(n,prob) )
-            # else: # Should be 'composite'
-            #     self.outputF.setText('<i>Fermat Result:</i> {:d} is <b>not prime</b>'.format(n))
-
-            # Output results from Miller-Rabin and compute the appropriate error bound, if necessary
-            # if ret_mr == 'prime':
-            #     prob = fermat.mprobability(k)
-            #     self.outputMR.setText( '<i>MR Result:</i> {:d} <b>is prime</b> with probability {:5.15f}'.format(n,prob) )
-            # else: # Should be 'composite'
-            #     self.outputMR.setText('<i>MR Result:</i> {:d} is <b>not prime</b>'.format(n))
-            # self.outputF.adjustSize()
 
         # If inputs not valid, display an error
         except Exception as e:

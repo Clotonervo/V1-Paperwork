@@ -1,0 +1,6 @@
+# Environment variables
+.env
+
+# Pycharm stuff
+.idea
+__pycache__/
