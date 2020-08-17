@@ -72,11 +72,11 @@ def getPaperwork(asset, type):
         # finalOutput = finalOutput + "<br/>"
         finalOutput = finalOutput + "<font color='red'><b>Acceptance criteria Incomplete for " + asset + ":</font><ul>"
         for ac in acceptance_problems:
-            finalOutput = finalOutput + "<li>" + ac["Name"] + "<font color='red''>"
+            finalOutput = finalOutput + "<li>" + ac["Name"] + "<font color='red'>"
             for value in ac["Values"]:
                 finalOutput = finalOutput + "<i> " + value + ","
-            finalOutput = finalOutput[:-1] + "</i></font></li>"
-        finalOutput += "</ul>"
+            finalOutput = finalOutput[:-1] + "</i></li>"
+        finalOutput += "</ul></font>"
 
     if not releaseNotesRequired:
         finalOutput = finalOutput + "\n"
@@ -315,7 +315,7 @@ def evaluateAllStoryVXTFields(storyID):
     #--------------- Release Notes Required
         resp = getVtxValue(storyID, "/Custom_ReleaseNoteRequired", True)
         global releaseNotesRequired
-        releaseNotesRequired = resp.json()["value"]
+        releaseNotesRequired = resp["value"]
 
     #--------------- Business Enabler
         resp = getVtxValue(storyID, "/Custom_BusinessEnabler", True)
@@ -349,7 +349,7 @@ def evaluateAllDefectVXTFields(defectID):
 
     #--------------- Priority Group
         resp = getVtxValue(defectID, "/Custom_PriorityGroup2", False)
-        if(resp.json()["value"] == None):
+        if(resp["value"] == None):
             empty_fields.append("Priority Group")
 
     #--------------- Commit Version
