@@ -276,7 +276,7 @@ def evaluateDefectFields(asset):
     if len(owners) == 0:
         empty_fields.append("Owners")
     if commit_version == None:
-        empty_fields.append("Commit Version")
+        empty_fields.append("Resolved in Build")
     if type == None:
         empty_fields.append("Type")
     if resolution == None:
