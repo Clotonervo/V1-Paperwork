@@ -260,7 +260,7 @@ def evaluateDefectFields(asset):
     commit_version = data["FixedInBuild"]["value"]
     type = data["Type.Name"]["value"]
     resolution = data["ResolutionReason.Name"]["value"]
-    # lean_budget =  data["Priority.Name"]["value"]
+    theme_investment =  data["Source.Name"]["value"]
 
     # Check for empty fields in asset
     if planning_level == None:
@@ -281,8 +281,8 @@ def evaluateDefectFields(asset):
         empty_fields.append("Type")
     if resolution == None:
         empty_fields.append("Resolution")
-    # if lean_budget == None:
-    #     empty_fields.append("Lean Budget")
+    if theme_investment == None:
+        empty_fields.append("Theme Investment")
 
     return defectID
 
