@@ -32,7 +32,7 @@ class PaperworkGUI( QWidget ):
         self.setLayout( vbox )
         self.scroll = QScrollArea()
         self.input_n = QLineEdit('')
-        self.input_n.setMinimumSize(300, 100)
+        self.input_n.setMinimumSize(400, 100)
         self.button    = QPushButton('Check Paperwork')
         self.label = QLabel("<i>Enter in story/defect numbers delimited by commas to check paperwork</i>")
         self.label.setWordWrap(True)

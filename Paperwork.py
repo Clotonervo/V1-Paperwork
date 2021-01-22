@@ -79,8 +79,8 @@ def getPaperwork(asset, type):
         finalOutput += "</ul></font>"
 
     if not releaseNotesRequired:
-        finalOutput = finalOutput + "\n"
-        finalOutput = finalOutput + "<i>Reminder: Release Notes Required field should be updated and confirmed by PO</i><br/>"
+        # finalOutput = finalOutput + "\n"
+        finalOutput = finalOutput + "<i>Note: Release Notes Required field is NOT marked. Remember to confirm this with your EM and PM</i><br/>"
 
     returnString = finalOutput
     finalOutput = ""
