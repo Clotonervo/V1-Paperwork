@@ -20,7 +20,6 @@ headers = {'Authorization': 'Bearer ' + env.get("API_KEY"), 'Accept': 'applicati
 empty_fields = []
 task_problems = []
 acceptance_problems = []
-releaseNotesRequired = False
 finalOutput = ""
 
 def getPaperwork(asset, type):
@@ -77,10 +76,6 @@ def getPaperwork(asset, type):
                 finalOutput = finalOutput + "<i> " + value + ","
             finalOutput = finalOutput[:-1] + "</i></li>"
         finalOutput += "</ul></font>"
-
-    if not releaseNotesRequired:
-        # finalOutput = finalOutput + "\n"
-        finalOutput = finalOutput + "<i>Note: Release Notes Required field is NOT marked. Remember to confirm this with your EM and PM</i><br/>"
 
     returnString = finalOutput
     finalOutput = ""
@@ -313,9 +308,9 @@ def evaluateAllStoryVXTFields(storyID):
             empty_fields.append("Commit Version")
 
     #--------------- Release Notes Required
-        resp = getVtxValue(storyID, "/Custom_ReleaseNoteRequired", True)
-        global releaseNotesRequired
-        releaseNotesRequired = resp["value"]
+        resp = getVtxValue(storyID, "/Custom_ReleaseNotesRequired2", True)
+        if(resp["value"] == None):
+            empty_fields.append("Release Notes Required")
 
     #--------------- Business Enabler
         resp = getVtxValue(storyID, "/Custom_BusinessEnabler", True)
@@ -333,9 +328,6 @@ def evaluateAllStoryVXTFields(storyID):
 ##
 def evaluateAllDefectVXTFields(defectID):
         #TODO: Can't find Summary, and didn't implement description
-        # Also couldn't find Validation tags (vtest, vexe, ...)
-        # Also Planning Item
-        # Also figure out how to handle release notes
         global finalOutput
     #--------------- Component
         resp = getVtxValue(defectID, "/Custom_Component", False)
@@ -363,9 +355,9 @@ def evaluateAllDefectVXTFields(defectID):
             empty_fields.append("Root Cause")
 
     #--------------- Release Notes Required
-        resp = getVtxValue(defectID, "/Custom_ReleaseNoteRequired", False)
-        global releaseNotesRequired
-        releaseNotesRequired = resp["value"]
+        resp = getVtxValue(storyID, "/Custom_ReleaseNotesRequired2", True)
+        if(resp["value"] == None):
+            empty_fields.append("Release Notes Required")
 
     #--------------- Installation Change
         resp = getVtxValue(defectID, "/Custom_InstallationChange5", False)
