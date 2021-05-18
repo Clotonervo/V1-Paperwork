@@ -36,6 +36,7 @@ def getPaperwork(asset, type):
     evaluateAcceptanceCriteria(acceptanceCriteriaList)
     global finalOutput
     finalOutput = ''
+    print("HERE")
 
     if type == "Defect":
         assetID = evaluateDefectFields(asset)
@@ -241,6 +242,7 @@ def evaluateDefectFields(asset):
         finalOutput = finalOutput + resp.status_code
         finalOutput = finalOutput + resp.json()
         exit()
+    print(resp.json())
     defectID = resp.json()["Assets"][0]["id"].split(":", 1)[1]
     data = resp.json()["Assets"][0]["Attributes"]
 
